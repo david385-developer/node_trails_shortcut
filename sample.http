@@ -1,0 +1,6 @@
+###
+GET http://localhost:3000/api/recipes?pages=1&&limit=10
+
+
+###
+GET http://localhost:3000/api/recipes/search?calories=<=400&title=pie&rating=>=4.5
