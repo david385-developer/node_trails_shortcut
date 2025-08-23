@@ -31,7 +31,7 @@ function App() {
     setError(null);
     try {
       const offset = (page - 1) * limit;
-      const response = await axios.get(`http://localhost:3000/api/recipes/?pages=${offset}&limit=${limit}`, {
+      const response = await axios.get(`https://davidgollamudi-nxtwave-recipesassessment-z2n3.onrender.com/api/recipes?pages=${offset}&&limit=${limit}`, {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache'
@@ -65,7 +65,7 @@ function App() {
       if (filters.calories) params.append('calories', filters.calories);
       if (filters.rating) params.append('rating', filters.rating);
 
-      const response = await axios.get(`http://localhost:3000/api/recipes/search/?${params.toString()}`, {
+      const response = await axios.get(`https://davidgollamudi-nxtwave-recipesassessment-z2n3.onrender.com/api/recipes/search/?${params.toString()}`, {
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache'
