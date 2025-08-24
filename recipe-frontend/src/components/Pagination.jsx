@@ -1,157 +1,162 @@
 import React from 'react';
+import ReactStars from 'react-rating-stars-component';
 
-const Pagination = ({ 
-  currentPage, 
-  totalRecipes, 
-  recipesPerPage, 
-  onPageChange, 
-  onRecipesPerPageChange 
-}) => {
-  const totalPages = Math.ceil(totalRecipes / recipesPerPage);
-  
-  // Calculate visible page numbers
-  const getVisiblePages = () => {
-    const pages = [];
-    const maxVisiblePages = 7;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 4; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-    
-    return pages;
+const RecipeDrawer = ({ recipe, isOpen, onClose }) => {
+  if (!recipe) return null;
+
+  const formatTime = (minutes) => {
+    if (!minutes || isNaN(minutes)) return 'N/A';
+    if (minutes < 60) return `${minutes} minutes`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours} hour${hours > 1 ? 's' : ''}`;
   };
 
-  const startIndex = (currentPage - 1) * recipesPerPage + 1;
-  const endIndex = Math.min(currentPage * recipesPerPage, totalRecipes);
+  const getNutrients = () => {
+    if (!recipe.nutrients) return [];
+    
+    let nutrients;
+    try {
+      nutrients = typeof recipe.nutrients === 'string' 
+        ? JSON.parse(recipe.nutrients) 
+        : recipe.nutrients;
+    } catch (e) {
+      return [];
+    }
+
+    return [
+      { label: 'Calories', value: nutrients.calories },
+      { label: 'Carbohydrates', value: nutrients.carbohydrateContent },
+      { label: 'Cholesterol', value: nutrients.cholesterolContent },
+      { label: 'Fiber', value: nutrients.fiberContent },
+      { label: 'Protein', value: nutrients.proteinContent },
+      { label: 'Saturated Fat', value: nutrients.saturatedFatContent },
+      { label: 'Sodium', value: nutrients.sodiumContent },
+      { label: 'Sugar', value: nutrients.sugarContent },
+      { label: 'Fat', value: nutrients.fatContent }
+    ].filter(nutrient => nutrient.value !== undefined && nutrient.value !== null);
+  };
 
   return (
-    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
-      <div className="flex-1 flex justify-between sm:hidden">
-        {/* Mobile pagination */}
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-      </div>
+    <>
+      {/* Overlay */}
+      <div
+        className={`drawer-overlay ${isOpen ? 'open' : ''}`}
+        onClick={onClose}
+      />
       
-      <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-        <div className="flex items-center space-x-4">
-          {/* Results info */}
-          <p className="text-sm text-gray-700">
-            Showing <span className="font-medium">{startIndex}</span> to{' '}
-            <span className="font-medium">{endIndex}</span> of{' '}
-            <span className="font-medium">{totalRecipes}</span> results
-          </p>
-          
-          {/* Results per page selector */}
-          <div className="flex items-center space-x-2">
-            <label htmlFor="per-page" className="text-sm text-gray-700">
-              Per page:
-            </label>
-            <select
-              id="per-page"
-              value={recipesPerPage}
-              onChange={(e) => onRecipesPerPageChange(Number(e.target.value))}
-              className="border border-gray-300 rounded-md text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value={15}>15</option>
-              <option value={25}>25</option>
-              <option value={35}>35</option>
-              <option value={50}>50</option>
-            </select>
+      {/* Drawer */}
+      <div className={`drawer ${isOpen ? 'open' : ''}`}>
+        <div className="h-full flex flex-col">
+          {/* Header */}
+          <div className="bg-blue-600 text-white p-6">
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <h2 className="text-xl font-bold mb-2">{recipe.title}</h2>
+                <p className="text-blue-100">{recipe.cuisine || 'Cuisine not specified'}</p>
+                {recipe.rating && (
+                  <div className="flex items-center mt-2">
+                    <ReactStars
+                      count={5}
+                      value={parseFloat(recipe.rating)}
+                      size={18}
+                      activeColor="#ffd700"
+                      edit={false}
+                      isHalf={true}
+                    />
+                    <span className="ml-2 text-blue-100">
+                      ({parseFloat(recipe.rating).toFixed(1)})
+                    </span>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={onClose}
+                className="text-white hover:text-gray-200 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            {/* Description */}
+            {recipe.description && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                <p className="text-gray-600 leading-relaxed">{recipe.description}</p>
+              </div>
+            )}
+
+            {/* Time Information */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Time Information</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Time:</span>
+                  <span className="font-medium">
+                    {(recipe.total_time && Number(recipe.total_time) > 0)
+                      ? formatTime(Number(recipe.total_time))
+                      : (recipe.prep_time && recipe.cook_time && Number(recipe.prep_time) > 0 && Number(recipe.cook_time) > 0)
+                        ? formatTime(Number(recipe.prep_time) + Number(recipe.cook_time))
+                        : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Prep Time:</span>
+                  <span className="font-medium">
+                    {(recipe.prep_time && Number(recipe.prep_time) > 0)
+                      ? formatTime(Number(recipe.prep_time))
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Cook Time:</span>
+                  <span className="font-medium">
+                    {(recipe.cook_time && Number(recipe.cook_time) > 0)
+                      ? formatTime(Number(recipe.cook_time))
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Serves:</span>
+                  <span className="font-medium">{recipe.serves || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Nutrition Information */}
+            {getNutrients().length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Nutrition Information</h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <table className="nutrient-table w-full">
+                    <thead>
+                      <tr>
+                        <th className="text-left">Nutrient</th>
+                        <th className="text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getNutrients().map((nutrient, index) => (
+                        <tr key={index}>
+                          <td className="text-gray-700">{nutrient.label}</td>
+                          <td className="text-right font-medium">{nutrient.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        
-        <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            {/* Previous button */}
-            <button
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-            
-            {/* Page numbers */}
-            {getVisiblePages().map((page, index) => {
-              if (page === '...') {
-                return (
-                  <span
-                    key={`ellipsis-${index}`}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
-                  >
-                    ...
-                  </span>
-                );
-              }
-              
-              return (
-                <button
-                  key={page}
-                  onClick={() => onPageChange(page)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                    currentPage === page
-                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
-            
-            {/* Next button */}
-            <button
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </nav>
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 
-export default Pagination;
+export default RecipeDrawer;

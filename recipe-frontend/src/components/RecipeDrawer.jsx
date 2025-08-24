@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactStars from 'react-rating-stars-component';
 
 const RecipeDrawer = ({ recipe, isOpen, onClose }) => {
-  const [isTimeExpanded, setIsTimeExpanded] = useState(false);
-
   if (!recipe) return null;
 
   const formatTime = (minutes) => {
@@ -95,37 +93,37 @@ const RecipeDrawer = ({ recipe, isOpen, onClose }) => {
 
             {/* Time Information */}
             <div className="mb-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Time Information</h3>
-                <button
-                  onClick={() => setIsTimeExpanded(!isTimeExpanded)}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  {isTimeExpanded ? 'Show Less' : 'Show More'}
-                </button>
-              </div>
-              
-              <div className="mt-2 space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Time Information</h3>
+              <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Time:</span>
-                  <span className="font-medium">{formatTime(recipe.total_time)}</span>
+                  <span className="font-medium">
+                    {(recipe.total_time && Number(recipe.total_time) > 0)
+                      ? formatTime(Number(recipe.total_time))
+                      : (recipe.prep_time && recipe.cook_time && Number(recipe.prep_time) > 0 && Number(recipe.cook_time) > 0)
+                        ? formatTime(Number(recipe.prep_time) + Number(recipe.cook_time))
+                        : 'N/A'}
+                  </span>
                 </div>
-                
-                <div className={`expandable-content ${isTimeExpanded ? 'open' : ''}`}>
-                  <div className="space-y-2 pt-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Prep Time:</span>
-                      <span className="font-medium">{formatTime(recipe.prep_time)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Cook Time:</span>
-                      <span className="font-medium">{formatTime(recipe.cook_time)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Serves:</span>
-                      <span className="font-medium">{recipe.serves || 'N/A'}</span>
-                    </div>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Prep Time:</span>
+                  <span className="font-medium">
+                    {(recipe.prep_time && Number(recipe.prep_time) > 0)
+                      ? formatTime(Number(recipe.prep_time))
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Cook Time:</span>
+                  <span className="font-medium">
+                    {(recipe.cook_time && Number(recipe.cook_time) > 0)
+                      ? formatTime(Number(recipe.cook_time))
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Serves:</span>
+                  <span className="font-medium">{recipe.serves || 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -154,11 +152,6 @@ const RecipeDrawer = ({ recipe, isOpen, onClose }) => {
                 </div>
               </div>
             )}
-
-            {/* Recipe ID (for debugging) */}
-            <div className="text-xs text-gray-400 mt-8">
-              Recipe ID: {recipe.id}
-            </div>
           </div>
         </div>
       </div>
